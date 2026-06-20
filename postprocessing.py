@@ -48,36 +48,36 @@ class TestBreaksOutputEntry(PostProcessOutputEntry):
     break_length: int
     max_break_length: list[int]
 
-def test_breaks(schedules: list[Schedule], periods: list[list[Block]], length: int = 1) -> list[TestBreaksOutputEntry]:
-    result = []
-    for schedule in schedules:
-        loaded = schedule.load()
-        if not loaded:
-            print("ERROR: FAILED TO LOAD SCHEDULE", schedule)
-            return []
+def test_breaks(schedule: Schedule, periods: list[list[Block]], length: int = 1,
+                force: bool = False) -> TestBreaksOutputEntry | None:
+    loaded = schedule.load()
+    if not loaded:
+        print("ERROR: FAILED TO LOAD SCHEDULE", schedule)
+        if not force:
+            return None
 
-        has_break = []
-        max_break_length = []
-        for period in periods:
-            count = 0
-            maximum = 0
-            for block in period:
-                if block.is_active:
-                    count = 0
-                    continue
-                count += 1
-                if count > maximum:
-                    maximum = count
-            has_break.append(maximum >= length)
-            max_break_length.append(maximum)
+    has_break = []
+    max_break_length = []
+    for period in periods:
+        count = 0
+        maximum = 0
+        for block in period:
+            if block.is_active:
+                count = 0
+                continue
+            count += 1
+            if count > maximum:
+                maximum = count
+        has_break.append(maximum >= length)
+        max_break_length.append(maximum)
 
-        result.append(TestBreaksOutputEntry(
-            schedule=schedule,
-            has_break=has_break,
-            break_length=length,
-            max_break_length=max_break_length
-        ))
-        schedule.unload()
+    result = TestBreaksOutputEntry(
+        schedule=schedule,
+        has_break=has_break,
+        break_length=length,
+        max_break_length=max_break_length
+    )
+    schedule.unload()
     return result
 
 
@@ -86,31 +86,30 @@ class CalcBreaksOutputEntry(PostProcessOutputEntry):
     num_total: int
     num_chunks: int
 
-def calc_breaks(schedules: list[Schedule], periods: list[list[Block]]) -> list[CalcBreaksOutputEntry]:
-    result = []
-    for schedule in schedules:
-        loaded = schedule.load()
-        if not loaded:
-            print("ERROR: FAILED TO LOAD SCHEDULE", schedule)
-            return []
+def calc_breaks(schedule: Schedule, periods: list[list[Block]], force: bool = False) -> CalcBreaksOutputEntry | None:
+    loaded = schedule.load()
+    if not loaded:
+        print("ERROR: FAILED TO LOAD SCHEDULE", schedule)
+        if not force:
+            return None
 
-        total = 0
+    total = 0
+    previous = True
+    chunk = 0
+
+    for period in periods:
+        for block in period:
+            if block.is_active:
+                previous = False
+                continue
+            total += 1
+            if not previous:
+                chunk += 1
+                previous = True
         previous = True
-        chunk = 0
 
-        for period in periods:
-            for block in period:
-                if block.is_active:
-                    previous = False
-                    continue
-                total += 1
-                if not previous:
-                    chunk += 1
-                    previous = True
-            previous = True
-
-        schedule.unload()
-        result.append(CalcBreaksOutputEntry(schedule, total, chunk))
+    schedule.unload()
+    result = CalcBreaksOutputEntry(schedule, total, chunk)
     return result
 
 
