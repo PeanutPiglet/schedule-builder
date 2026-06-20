@@ -67,7 +67,8 @@ def process_foods(schedules: list[Schedule]):
 
     sort_chain.add_chain(
         func=lambda s: postprocessing.test_breaks(s, periods, 1),
-        selector=lambda x: 0 if all(x.has_break) else 1
+        selector=lambda x: 0 if all(x.has_break) else 1,
+        filtering=lambda x: all(x.has_break)
     )
     sort_chain.add_chain(
         func=lambda s: postprocessing.test_breaks(s, periods, 2),
