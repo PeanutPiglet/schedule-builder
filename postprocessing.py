@@ -17,6 +17,21 @@ class SortChain:
             arrayed.append([schedule] + [selections])
         arrayed.sort()
         return arrayed #TODO TEST THIS
+    def __init__(self, raw_schedules: list[Schedule] = None, chain: list[tuple[Callable, Callable]] = None):
+        self.raw_schedules = raw_schedules if raw_schedules else []
+        self.chain = chain if chain else []
+    def add_schedule(self, schedule):
+        self.raw_schedules.append(schedule)
+    def add_chain(self, func: Callable, selector: Callable):
+        self.chain.append((func, selector))
+    def pop_schedule(self) -> Schedule | None:
+        if len(self.raw_schedules) == 0:
+            return None
+        return self.raw_schedules.pop()
+    def pop_chain(self) -> tuple[Callable, Callable] | None:
+        if len(self.chain) == 0:
+            return None
+        return self.chain.pop()
 
 
 @dataclass
