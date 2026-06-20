@@ -2,6 +2,13 @@ from scheduler import *
 import postprocessing
 
 day_code = {'M': '0', 'T': '1', 'W': '2', 'H': '3', 'F': '4'}
+times_food = [
+    '01214', '11214', '21214', '31214', '41214',
+    '01719', '11719', '21719', '31719', '41719'
+]
+times_afternoon = [
+    '01417', '11417', '21417', '31417', '41417'
+]
 
 
 def construct_section(name: str, timeframe: Timeframe):
@@ -55,13 +62,26 @@ def basic():
     return schedules
 
 
+def process_breaks1(schedules: list[Schedule]):
+    frame = schedules[0].timeframe
+    period_food = [frame.gets(q) for q in times_food]
+    period_afternoon = [frame.gets(q) for q in times_afternoon]
+
+    sort_chain = postprocessing.SortChain(raw_schedules=schedules)
+    sort_chain.add_chain(
+        func=lambda s: postprocessing.test_breaks(s, period_food, 1),
+        selector=lambda x: (sum(x.max_break_length) / len(x.max_break_length)) * -1,
+        filtering=lambda x: all(x.has_break)
+    )
+
+    result = sort_chain.evaluate()
+    return result
+
+
 def process_foods(schedules: list[Schedule]):
     frame = schedules[0].timeframe
-    query = [
-        '01214', '11214', '21214', '31214', '41214',
-        '01719', '11719', '21719', '31719', '41719'
-    ]
-    periods = [frame.gets(q) for q in query]
+
+    periods = [frame.gets(q) for q in times_food]
 
     sort_chain = postprocessing.SortChain(raw_schedules=schedules)
 

@@ -16,7 +16,7 @@ type ChainEntry = tuple[
 class SortChain:
     raw_schedules: list[Schedule]
     chain: list[ChainEntry]
-    def evaluate(self, top: int = -1) -> list[Schedule]:
+    def evaluate(self, top: int = -1) -> list[tuple[Schedule, list]]:
         arrayed: list[tuple[Schedule, list]] = [(self.raw_schedules[i], []) for i in range(len(self.raw_schedules))]
         current = self.raw_schedules
         for calc_func, selector, filtering in self.chain:
@@ -39,7 +39,6 @@ class SortChain:
 
         arrayed.sort(key=lambda x: x[1:])
         return arrayed
-        return [arr[0] for arr in arrayed]
 
     def __init__(self, raw_schedules: list[Schedule] = None, chain: list[ChainEntry] = None):
         self.raw_schedules = raw_schedules if raw_schedules else []
