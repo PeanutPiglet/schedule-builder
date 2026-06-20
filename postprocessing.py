@@ -22,23 +22,42 @@ class SortChain:
 @dataclass
 class TestBreaksOutputEntry:
     schedule: Schedule
-    has_break: bool
+    has_break: list[bool]
     break_length: int
-    max_break_length: int
+    max_break_length: list[int]
 
 def test_breaks(schedules: list[Schedule], periods: list[list[Block]], length: int = 1) -> list[TestBreaksOutputEntry]:
-    for period in periods:
-        count = 0
-        for block in period:
-            if block.is_active:
-                count = 0
-                continue
-            count += 1
-            if count >= length:
-                break
-        if count < length:
-            return False
-    return True
+    result = []
+    for schedule in schedules:
+        loaded = schedule.load()
+        if not loaded:
+            print("ERROR: FAILED TO LOAD SCHEDULE", schedule)
+            return []
+
+        has_break = []
+        max_break_length = []
+        for period in periods:
+            count = 0
+            maximum = 0
+            for block in period:
+                if block.is_active:
+                    count = 0
+                    continue
+                count += 1
+                if count > maximum:
+                    maximum = count
+            has_break.append(maximum >= length)
+            max_break_length.append(maximum)
+
+        result.append(TestBreaksOutputEntry(
+            schedule=schedule,
+            has_break=has_break,
+            break_length=length,
+            max_break_length=max_break_length
+        ))
+        schedule.unload()
+    return result
+
 
 
 @dataclass
