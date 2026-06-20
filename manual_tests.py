@@ -70,23 +70,16 @@ def process_foods(schedules: list[Schedule]):
 
 
 def filter_foods(schedules: list[Schedule]) -> list[Schedule]:
-    result = []
-    for schedule in schedules:
-        loaded = schedule.load()
-        if not loaded:
-            print("FAILED TO LOAD SCHEDULE", schedule)
-            return []
-
-        frame = schedule.timeframe
-        query = [
-            '01214', '11214', '21214', '31214', '41214',
-            '01719', '11719', '21719', '31719', '41719'
-        ]
-        periods = [frame.gets(q) for q in query]
-        if postprocessing.has_breaks(periods):
-            result.append(schedule)
-
-        schedule.unload()
+    if len(schedules) == 0:
+        return []
+    frame = schedules[0].timeframe
+    query = [
+        '01214', '11214', '21214', '31214', '41214',
+        '01719', '11719', '21719', '31719', '41719'
+    ]
+    periods = [frame.gets(q) for q in query]
+    raw_result = postprocessing.test_breaks(schedules=schedules, periods=periods, length=1)
+    result = [x.schedule for x in raw_result if all(x.has_break)]
     return result
 
 
