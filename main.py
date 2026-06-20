@@ -11,6 +11,10 @@ import exporter
 def construct_periods(periods: list[str], frame: Timeframe) -> list[list[Block]]:
     return [frame.gets(p) for p in periods]
 
+
+""" -- SETTINGS -- """
+
+
 # GLOBAL TEMPLATE VARIABLES
 WEEK = TimeWeek()
 DAY_CODE = {'M': '0', 'T': '1', 'W': '2', 'H': '3', 'F': '4'}
@@ -25,7 +29,7 @@ PERIOD_DAY = construct_periods([
     '00922', '10922', '20922', '30922', '40922'
 ], WEEK)
 
-# INITIAL SETTINGS
+# INPUT QUERY
 QUERY = {
     'MAT237Y': ['MTH0910', 'MTH1112', 'MTH1415', 'MTH1718'],
     'MAT237T': ['T1011', 'T1112', 'T1213', 'T1314', 'T1415', 'T1516', 'T1617', 'T1718', 'T1819'],
@@ -40,6 +44,7 @@ QUERY = {
     'PHY250T': ['T1516', 'W1617', 'F1415', 'F1617']
 }
 
+# POST PROCESSING
 POST_PROCESS_CHAIN: list[ChainEntry] = [
     (
         lambda s: test_breaks(s, PERIOD_FOOD, 1),
@@ -54,7 +59,8 @@ POST_PROCESS_CHAIN: list[ChainEntry] = [
 ]
 
 
-# CODE
+""" -- CODE -- """
+
 
 def construct_section(name: str, timeframe: Timeframe):
     block_buffer = []
@@ -101,7 +107,7 @@ def main():
 
     print(f"DISPLAYING RESULT - {len(result)} results")
     for i in range(len(result)):
-        print(i + 1)
+        print("result #", i + 1)
         print(exporter.display_week_schedule(result[i][0]))
         if input() == "q":
             break

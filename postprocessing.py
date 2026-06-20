@@ -1,3 +1,8 @@
+"""
+Post Processing module.
+Scroll down to see the Post-Process Calculation Functions.
+"""
+
 from typing import Callable, Any
 from dataclasses import dataclass
 from scheduler import *
@@ -6,6 +11,10 @@ from scheduler import *
 @dataclass
 class PostProcessOutputEntry:
     schedule: Schedule
+
+
+""" -- Post-Process Chaining Engine -- """
+
 
 type ChainEntry = tuple[
     Callable[[Schedule], PostProcessOutputEntry],
@@ -55,6 +64,9 @@ class SortChain:
         if len(self.chain) == 0:
             return None
         return self.chain.pop()
+
+
+""" -- Post-Process Calculation Functions -- """
 
 
 @dataclass

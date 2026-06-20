@@ -224,7 +224,7 @@ class SolverAll(Solver):
 
     def _solve(self, queue: list[Group], result: list[Schedule], ass: dict[str, Section | None]):
         if len(queue) == 0:
-            print("ZERO")
+            # print("ZERO")
             schedule = Schedule(self.frame, ass.copy())
             result.append(schedule)
             return
@@ -235,7 +235,7 @@ class SolverAll(Solver):
             conflicted = curr_group.assign(sec)
             ass[curr_group.name] = sec
             if not conflicted:
-                print(f"continuing {curr_group.name} -> {sec.name}")
+                # print(f"continuing {curr_group.name} -> {sec.name}")
                 self._solve(queue, result, ass)
             curr_group.unassign(sec)
             ass[curr_group.name] = None
