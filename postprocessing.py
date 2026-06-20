@@ -1,13 +1,12 @@
-from itertools import chain
 from typing import Callable
-
+from dataclasses import dataclass
 from scheduler import *
 
 
 class SortChain:
     raw_schedules: list[Schedule]
     chain: list[tuple[Callable, Callable]]
-    def evaluate(self) -> list[Schedule]:
+    def evaluate(self, top: int = -1) -> list[Schedule]:
         table = []
         for calc_func, selector in self.chain:
             table.append([selector(calc_func(schedule)) for schedule in self.raw_schedules])
@@ -20,7 +19,14 @@ class SortChain:
         return arrayed #TODO TEST THIS
 
 
-def has_breaks(periods: list[list[Block]], length: int = 1) -> bool:
+@dataclass
+class TestBreaksOutputEntry:
+    schedule: Schedule
+    has_break: bool
+    break_length: int
+    max_break_length: int
+
+def test_breaks(schedules: list[Schedule], periods: list[list[Block]], length: int = 1) -> list[TestBreaksOutputEntry]:
     for period in periods:
         count = 0
         for block in period:
@@ -35,7 +41,13 @@ def has_breaks(periods: list[list[Block]], length: int = 1) -> bool:
     return True
 
 
-def calc_breaks(schedules: list[Schedule], periods: list[list[Block]]) -> list[tuple[Schedule, int, int]]:
+@dataclass
+class CalcBreaksOutputEntry:
+    schedule: Schedule
+    num_total: int
+    num_chunks: int
+
+def calc_breaks(schedules: list[Schedule], periods: list[list[Block]]) -> list[CalcBreaksOutputEntry]:
     result = []
     for schedule in schedules:
         loaded = schedule.load()
@@ -59,7 +71,7 @@ def calc_breaks(schedules: list[Schedule], periods: list[list[Block]]) -> list[t
             previous = True
 
         schedule.unload()
-        result.append((schedule, total, chunk))
+        result.append(CalcBreaksOutputEntry(schedule, total, chunk))
     return result
 
 
