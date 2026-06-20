@@ -3,7 +3,7 @@ A course schedule builder built in Python.
 Uses brute forcing along with post processing.
 
 # Plans
-* User Inferface
+* User Interface
 * More Post-Processing Functions
 * Live Data Scrap for UofT Courses
 * Better Manual (the following manual may induce mild confusion)
@@ -39,7 +39,7 @@ Each post-process step is a tuple with 3 functions
 2. selector function: takes the output from (1) and return the measure which is used to rank (ascending-order) all the possible schedules. The final displayed output are in this ranked order.
 3. filtering function [optional, use None]: takes the output from (1) and return whether to keep this schedule in the final output.
 
-Note that the final ranking will consider ranking from prior steps with higher priority. That is, if $A$ is ranked higher than $B$ in step one, then any further post-process steps will not between influence the ranking between $A$ and $B$. Alternatively, at any given step, further steps (for ranking) will matter only if $A$ and $B$ ranked equally at the current step.
+Note that the final ranking will consider ranking from prior steps with higher priority. That is, if $A$ is ranked higher than $B$ in step one, then any further post-process steps will not influence the ranking between $A$ and $B$. Alternatively, at any given step, further steps (for ranking) will matter only if $A$ and $B$ ranked equally at the current step.
 
 ### Output
 $The final output displays the ranked schedules one at a time.
