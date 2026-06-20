@@ -1,11 +1,19 @@
-from typing import Callable
+from typing import Callable, Any
 from dataclasses import dataclass
 from scheduler import *
 
+@dataclass
+class PostProcessOutputEntry:
+    schedule: Schedule
+
+type ChainEntry = tuple[
+    Callable[[Schedule], PostProcessOutputEntry],
+    Callable[[PostProcessOutputEntry], Any]
+]
 
 class SortChain:
     raw_schedules: list[Schedule]
-    chain: list[tuple[Callable, Callable]]
+    chain: list[ChainEntry]
     def evaluate(self, top: int = -1) -> list[Schedule]:
         table = []
         for calc_func, selector in self.chain:
@@ -17,7 +25,7 @@ class SortChain:
             arrayed.append([schedule] + [selections])
         arrayed.sort()
         return arrayed #TODO TEST THIS
-    def __init__(self, raw_schedules: list[Schedule] = None, chain: list[tuple[Callable, Callable]] = None):
+    def __init__(self, raw_schedules: list[Schedule] = None, chain: list[ChainEntry] = None):
         self.raw_schedules = raw_schedules if raw_schedules else []
         self.chain = chain if chain else []
     def add_schedule(self, schedule):
@@ -28,15 +36,14 @@ class SortChain:
         if len(self.raw_schedules) == 0:
             return None
         return self.raw_schedules.pop()
-    def pop_chain(self) -> tuple[Callable, Callable] | None:
+    def pop_chain(self) -> ChainEntry | None:
         if len(self.chain) == 0:
             return None
         return self.chain.pop()
 
 
 @dataclass
-class TestBreaksOutputEntry:
-    schedule: Schedule
+class TestBreaksOutputEntry(PostProcessOutputEntry):
     has_break: list[bool]
     break_length: int
     max_break_length: list[int]
@@ -74,10 +81,8 @@ def test_breaks(schedules: list[Schedule], periods: list[list[Block]], length: i
     return result
 
 
-
 @dataclass
-class CalcBreaksOutputEntry:
-    schedule: Schedule
+class CalcBreaksOutputEntry(PostProcessOutputEntry):
     num_total: int
     num_chunks: int
 
