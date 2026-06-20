@@ -56,6 +56,29 @@ def basic():
 
 
 def process_foods(schedules: list[Schedule]):
+    frame = schedules[0].timeframe
+    query = [
+        '01214', '11214', '21214', '31214', '41214',
+        '01719', '11719', '21719', '31719', '41719'
+    ]
+    periods = [frame.gets(q) for q in query]
+
+    sort_chain = postprocessing.SortChain(raw_schedules=schedules)
+
+    sort_chain.add_chain(
+        func=lambda s: postprocessing.test_breaks(s, periods, 1),
+        selector=lambda x: 0 if all(x.has_break) else 1
+    )
+    sort_chain.add_chain(
+        func=lambda s: postprocessing.test_breaks(s, periods, 2),
+        selector=lambda x: 0 if all(x.has_break) else 1
+    )
+
+    result = sort_chain.evaluate()
+    return result
+
+
+def process_foods_deprecated(schedules: list[Schedule]):
     filtered = filter_foods(schedules)
     if not filtered:
         print("WARNING: NOTHING LEFT AFTER FILTER")

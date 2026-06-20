@@ -23,8 +23,8 @@ class SortChain:
             schedule = self.raw_schedules[i]
             selections = [table[j][i] for j in range(len(table))]
             arrayed.append([schedule] + [selections])
-        arrayed.sort()
-        return arrayed #TODO TEST THIS
+        arrayed.sort(key=lambda x: x[1:])
+        return arrayed
     def __init__(self, raw_schedules: list[Schedule] = None, chain: list[ChainEntry] = None):
         self.raw_schedules = raw_schedules if raw_schedules else []
         self.chain = chain if chain else []
