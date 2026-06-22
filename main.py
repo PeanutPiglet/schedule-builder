@@ -6,6 +6,7 @@ Refer to README for instructions.
 from scheduler import *
 from postprocessing import *
 import exporter
+import json
 
 # AUXILIARY HELPERS
 def construct_periods(periods: list[str], frame: Timeframe) -> list[list[Block]]:
@@ -108,14 +109,74 @@ def solve():
     sort_chain = SortChain(raw_schedules=schedules)
     for func, sel, fil in POST_PROCESS_CHAIN:
         sort_chain.add_chain(func=func, selector=sel, filtering=fil)
-
     result = sort_chain.evaluate()
+
+    # saving
     result_name = str(NUM_RES_COUNTER)
     RESULTS[result_name] = result
 
-    display_result(result_name)
-
     return result
+
+
+""" SYSTEMATICS """
+
+
+def load_from_file(filename: str) -> bool:
+    with open(filename, 'r') as f:
+        data = json.load(f)
+
+        # sanity check
+        if isinstance(data, list):
+            return False
+        for entry in data:
+            if not isinstance(data[entry], list):
+                return False
+
+        global QUERY
+        QUERY = data
+        return True
+
+
+""" DISPLAY """
+
+
+def main_loop() -> None:
+    while True:
+        inputted = input().strip()
+        if not inputted:
+            continue
+
+        splitted = inputted.split(" ")
+        cmd = splitted[0]
+        arguments = splitted[1:]
+
+        match cmd:
+            case 'solve':
+                solve()
+            case 'show':
+                if len(arguments) < 1:
+                    display_results_list()
+                else:
+                    display_result(arguments[0])
+            case 'query':
+                display_query()
+            case 'load':
+                if len(arguments) < 1:
+                    continue
+                load_from_file(arguments[0])
+
+
+def display_query():
+    for group in QUERY:
+        print(f"{group} : {QUERY[group]}")
+    return
+
+
+def display_results_list():
+    print("Results: ")
+    for res_name in RESULTS:
+        print(f"{res_name} : {len(RESULTS[res_name])} schedules")
+    return
 
 
 def display_result(res: str) -> bool:
@@ -133,7 +194,7 @@ def display_result(res: str) -> bool:
 
 
 if __name__ == "__main__":
-    solve()
+    main_loop()
 
 
 
