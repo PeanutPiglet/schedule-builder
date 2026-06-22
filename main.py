@@ -30,7 +30,7 @@ PERIOD_DAY = construct_periods([
 ], WEEK)
 
 # INPUT QUERY
-QUERY = {
+INITIAL_QUERY = {
     'MAT237Y': ['MTH0910', 'MTH1112', 'MTH1415', 'MTH1718'],
     'MAT237T': ['T1011', 'T1112', 'T1213', 'T1314', 'T1415', 'T1516', 'T1617', 'T1718', 'T1819'],
     'MAT244H': ['W0911F1011', 'W1113F1112', 'W1315F1415', 'W1517F1516'],
@@ -45,7 +45,7 @@ QUERY = {
 }
 
 # POST PROCESSING
-POST_PROCESS_CHAIN: list[ChainEntry] = [
+INITIAL_POST_PROCESS_CHAIN: list[ChainEntry] = [
     (
         lambda s: test_breaks(s, PERIOD_FOOD, 1),
         lambda x: (sum(x.max_break_length) / len(x.max_break_length)) * -1,
@@ -60,6 +60,12 @@ POST_PROCESS_CHAIN: list[ChainEntry] = [
 
 
 """ -- CODE -- """
+
+
+RESULTS: dict[str, list[tuple[Schedule, list]]] = {}
+QUERY = INITIAL_QUERY.copy()
+POST_PROCESS_CHAIN = INITIAL_POST_PROCESS_CHAIN.copy()
+NUM_RES_COUNTER = 1
 
 
 def construct_section(name: str, timeframe: Timeframe):
@@ -79,7 +85,7 @@ def construct_section(name: str, timeframe: Timeframe):
     return Section(name, block_buffer)
 
 
-def main():
+def solve():
     # initialization
     sections: dict[str, Section] = {}
     groups: dict[str, Group] = {}
@@ -104,20 +110,30 @@ def main():
         sort_chain.add_chain(func=func, selector=sel, filtering=fil)
 
     result = sort_chain.evaluate()
+    result_name = str(NUM_RES_COUNTER)
+    RESULTS[result_name] = result
 
-    print(f"DISPLAYING RESULT - {len(result)} results")
-    for i in range(len(result)):
-        print("result #", i + 1)
-        print(exporter.display_week_schedule(result[i][0]))
-        if input() == "q":
-            break
+    display_result(result_name)
 
     return result
 
 
-RESULT = []
+def display_result(res: str) -> bool:
+    if res not in RESULTS:
+        print(f"ERROR: no result '{res}' found")
+        return False
+    result = RESULTS[res]
+    print(f"DISPLAYING RESULT - {res} - {len(result)} schedules")
+    for i in range(len(result)):
+        print(f"schedule # {i + 1}")
+        print(exporter.display_week_schedule(result[i][0]))
+        if input() == 'q':
+            break
+    return True
+
+
 if __name__ == "__main__":
-    RESULT = main()
+    solve()
 
 
 
