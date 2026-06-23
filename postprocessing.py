@@ -140,6 +140,21 @@ def calc_breaks(schedule: Schedule, periods: list[list[Block]], force: bool = Fa
     return result
 
 
+@dataclass
+class TestIntersectOutputEntry(PostProcessOutputEntry):
+    has_intersection: bool
+
+def test_intersect(schedule: Schedule, intersection: list[tuple[str, str]]) -> TestIntersectOutputEntry:
+    has_intersection = True
+    for group_name, section_name in intersection:
+        if not group_name in schedule.assignment:
+            has_intersection = False
+            break
+        if schedule.assignment[group_name].name != section_name:
+            has_intersection = False
+            break
+    return TestIntersectOutputEntry(schedule, has_intersection)
+
 
 
 
