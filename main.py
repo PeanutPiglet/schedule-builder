@@ -2,7 +2,6 @@
 Main script for the schedule builder.
 Refer to README for instructions.
 """
-
 from scheduler import *
 from postprocessing import *
 import exporter
@@ -50,13 +49,24 @@ INITIAL_QUERY = "data/J26F.json"
 INITIAL_POST_PROCESS_CHAIN: list[ChainEntry] = [
     (
         lambda s: test_breaks(s, PERIOD_FOOD, 1),
-        lambda x: (sum(x.max_break_length) / len(x.max_break_length)) * -1,
+        lambda x: 0, # (sum(x.max_break_length) / len(x.max_break_length)) * -1,
         lambda x: all(x.has_break)
+    ),
+    (
+        lambda s: test_breaks(s, PERIOD_DAY, 1),
+        lambda x: (sum(x.max_break_length) / len(x.max_break_length)) * -1,
+        None
     ),
     (
         lambda s: calc_breaks(s, PERIOD_DAY),
         lambda x: x.num_chunks,
         None
+    ),
+    (
+        lambda s: test_intersect(s, [("CSC236G", "W1821")]),
+        lambda x: 0,
+        lambda x: not x.has_intersection
+        #lambda x: ("CSC236G" not in x.assignment) or (x.assignment["CSC236G"].name != "W1821")
     )
 ]
 
