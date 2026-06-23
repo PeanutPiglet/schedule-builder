@@ -55,7 +55,7 @@ INITIAL_POST_PROCESS_CHAIN: list[ChainEntry] = [
     ),
     (
         lambda s: calc_breaks(s, PERIOD_DAY),
-        lambda x: x.num_chunks * -1,
+        lambda x: x.num_chunks,
         None
     )
 ]
