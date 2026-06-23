@@ -177,6 +177,17 @@ def diff_results(res1: str, res2: str) -> list[tuple[tuple[str, str], tuple[int,
     return arrayed
 
 
+""" EDIT FUNCTIONS """
+
+
+def cut_result(res: str, limit: int) -> bool:
+    if res not in RESULTS:
+        print(f"Result '{res}' not found")
+        return False
+    RESULTS[res] = RESULTS[res][:limit]
+    return True
+
+
 """ DISPLAY """
 
 
@@ -207,6 +218,33 @@ def main_loop() -> None:
                 if len(arguments) < 1:
                     continue
                 load_from_file(arguments[0])
+            case 'diff':
+                if len(arguments) < 2:
+                    continue
+                diff = diff_results(arguments[0], arguments[1])
+                display_list(diff)
+            case 'cut':
+                if len(arguments) < 2:
+                    continue
+                try:
+                    cut_result(arguments[0], int(arguments[1]))
+                except:
+                    continue
+
+
+def display_list(lst: list, size: int = 5) -> None:
+    n = len(lst)
+    i = 0
+    while i < n - size:
+        for j in range(i, i + 5):
+            print(lst[j])
+        print(f"-- {i + size} / {n} --")
+        i += size
+        if input() == 'q':
+            return
+    for j in range(i * size, n):
+        print(lst[j])
+    return
 
 
 def display_query():
@@ -232,7 +270,7 @@ def display_result(res: str, index: str = "") -> bool:
         for i in range(len(result)):
             print(f"schedule # {i + 1}")
             print(exporter.display_week_schedule(result[i][0]))
-            if input() == 'q':
+            if input("enter 'q' to stop") == 'q':
                 break
         return True
     print(f"DISPLAYING RESULT - {res} - entry {index}")
