@@ -31,19 +31,20 @@ PERIOD_DAY = construct_periods([
 ], WEEK)
 
 # INPUT QUERY
-INITIAL_QUERY = {
-    'MAT237Y': ['MTH0910', 'MTH1112', 'MTH1415', 'MTH1718'],
-    'MAT237T': ['T1011', 'T1112', 'T1213', 'T1314', 'T1415', 'T1516', 'T1617', 'T1718', 'T1819'],
-    'MAT244H': ['W0911F1011', 'W1113F1112', 'W1315F1415', 'W1517F1516'],
-    'MAT244T': ['M0910', 'M1011', 'M1112', 'M1213', 'M1314', 'M1415', 'M1516', 'M1617', 'M1718', 'M1819'],
-    'STA257H': ['M1113W1112', 'M1517W1516'],
-    'STA257T': ['W1213', 'W1617', ''],
-    'CSC265H': ['MWF1516'],
-    'CSC207H': ['W1315', 'W1517', 'H1315', 'H1820'],
-    'CSC207T': ['H0911'],
-    'PHY250H': ['MW0910'],
-    'PHY250T': ['T1516', 'W1617', 'F1415', 'F1617']
-}
+INITIAL_QUERY = "data/J26F.json"
+# INITIAL_QUERY = {
+#     'MAT237Y': ['MTH0910', 'MTH1112', 'MTH1415', 'MTH1718'],
+#     'MAT237T': ['T1011', 'T1112', 'T1213', 'T1314', 'T1415', 'T1516', 'T1617', 'T1718', 'T1819'],
+#     'MAT244H': ['W0911F1011', 'W1113F1112', 'W1315F1415', 'W1517F1516'],
+#     'MAT244T': ['M0910', 'M1011', 'M1112', 'M1213', 'M1314', 'M1415', 'M1516', 'M1617', 'M1718', 'M1819'],
+#     'STA257H': ['M1113W1112', 'M1517W1516'],
+#     'STA257T': ['W1213', 'W1617'],
+#     'CSC265H': ['MWF1516'],
+#     'CSC207H': ['W1315', 'W1517', 'H1315', 'H1820'],
+#     'CSC207T': ['H0911'],
+#     'PHY250H': ['MW0910'],
+#     'PHY250T': ['T1516', 'W1617', 'F1415', 'F1617']
+# }
 
 # POST PROCESSING
 INITIAL_POST_PROCESS_CHAIN: list[ChainEntry] = [
@@ -62,9 +63,27 @@ INITIAL_POST_PROCESS_CHAIN: list[ChainEntry] = [
 
 """ -- CODE -- """
 
+""" SYSTEMATICS """
+
+
+def load_from_file(filename: str) -> list | None:
+    with open(filename, 'r') as f:
+        data = json.load(f)
+
+        # sanity check
+        if isinstance(data, list):
+            return None
+        for entry in data:
+            if not isinstance(data[entry], list):
+                return None
+
+        global QUERY
+        QUERY = data
+        return QUERY
+
 
 RESULTS: dict[str, list[tuple[Schedule, list]]] = {}
-QUERY = INITIAL_QUERY.copy()
+QUERY = load_from_file(INITIAL_QUERY) if isinstance(INITIAL_QUERY, str) else INITIAL_QUERY.copy()
 POST_PROCESS_CHAIN = INITIAL_POST_PROCESS_CHAIN.copy()
 NUM_RES_COUNTER = 1
 
@@ -112,29 +131,12 @@ def solve():
     result = sort_chain.evaluate()
 
     # saving
+    global NUM_RES_COUNTER
+    NUM_RES_COUNTER += 1
     result_name = str(NUM_RES_COUNTER)
     RESULTS[result_name] = result
 
     return result
-
-
-""" SYSTEMATICS """
-
-
-def load_from_file(filename: str) -> bool:
-    with open(filename, 'r') as f:
-        data = json.load(f)
-
-        # sanity check
-        if isinstance(data, list):
-            return False
-        for entry in data:
-            if not isinstance(data[entry], list):
-                return False
-
-        global QUERY
-        QUERY = data
-        return True
 
 
 """ DISPLAY """
