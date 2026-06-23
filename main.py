@@ -139,6 +139,44 @@ def solve():
     return result
 
 
+""" TOOL FUNCTIONS """
+
+
+def diff_assignment(ass1: dict[str, Section], ass2: dict[str, Section]) -> tuple[int, float, float]:
+    """
+    Return tuple of the number of matching section-assignments, the ratio of matching to union,
+    and the ratio of matching to intersection.
+    """
+    intersect = 0
+    matching = 0
+    for group in ass1:
+        if group in ass2:
+            intersect += 1
+            if ass1[group].name == ass2[group].name:
+                matching += 1
+    union = len(ass1) + len(ass2) - intersect
+    return matching, matching / union, matching / intersect
+
+
+def diff_results(res1: str, res2: str) -> list[tuple[tuple[str, str], tuple[int, float]]]:
+    if res1 not in RESULTS:
+        print(f"ERROR: result '{res1}' not found")
+    if res2 not in RESULTS:
+        print(f"ERROR: result '{res2}' not found")
+    result1 = RESULTS[res1]
+    result2 = RESULTS[res2]
+    arrayed = []
+    for i in range(len(result1)):
+        r1 = result1[i]
+        for j in range(len(result2)):
+            r2 = result2[j]
+            diff = diff_assignment(r1[0].assignment, r2[0].assignment)
+            arrayed.append(((i, j), (diff[0] * -1, (i + j) / 2 )))
+
+    arrayed.sort(key=lambda x: x[1])
+    return arrayed
+
+
 """ DISPLAY """
 
 
@@ -159,7 +197,10 @@ def main_loop() -> None:
                 if len(arguments) < 1:
                     display_results_list()
                 else:
-                    display_result(arguments[0])
+                    if len(arguments) < 2:
+                        display_result(arguments[0])
+                    else:
+                        display_result(arguments[0], arguments[1])
             case 'query':
                 display_query()
             case 'load':
@@ -181,17 +222,21 @@ def display_results_list():
     return
 
 
-def display_result(res: str) -> bool:
+def display_result(res: str, index: str = "") -> bool:
     if res not in RESULTS:
         print(f"ERROR: no result '{res}' found")
         return False
     result = RESULTS[res]
-    print(f"DISPLAYING RESULT - {res} - {len(result)} schedules")
-    for i in range(len(result)):
-        print(f"schedule # {i + 1}")
-        print(exporter.display_week_schedule(result[i][0]))
-        if input() == 'q':
-            break
+    if index == "":
+        print(f"DISPLAYING RESULT - {res} - {len(result)} schedules")
+        for i in range(len(result)):
+            print(f"schedule # {i + 1}")
+            print(exporter.display_week_schedule(result[i][0]))
+            if input() == 'q':
+                break
+        return True
+    print(f"DISPLAYING RESULT - {res} - entry {index}")
+    print(exporter.display_week_schedule(result[int(index)][0]))
     return True
 
 
