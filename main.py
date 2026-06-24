@@ -98,6 +98,14 @@ POST_PROCESS_CHAIN = INITIAL_POST_PROCESS_CHAIN.copy()
 NUM_RES_COUNTER = 1
 
 
+def get_schedule_from_results(entry: str, index: int) -> Schedule | None:
+    if entry not in RESULTS:
+        return None
+    if index >= len(RESULTS[entry]):
+        return None
+    return RESULTS[entry][index][0]
+
+
 def construct_section(name: str, timeframe: Timeframe):
     block_buffer = []
     day_buffer = []
@@ -187,6 +195,26 @@ def diff_results(res1: str, res2: str) -> list[tuple[tuple[str, str], tuple[int,
     return arrayed
 
 
+def diff_schedule(sch1: Schedule, sch2: Schedule) -> tuple[list[tuple[str, str, str]], list[str], list[str]]:
+    d_sections: list[tuple[str, str, str]] = []
+    only2: list[str] = []
+    visited: set[str] = set()
+    for group_name in sch1.assignment:
+        visited.add(group_name)
+        if group_name in sch2.assignment:
+            ass1 = sch1.assignment[group_name].name
+            ass2 = sch2.assignment[group_name].name
+            if ass1 != ass2:
+                d_sections.append((group_name, ass1, ass2))
+    for group_name in sch2.assignment:
+        if group_name in visited:
+            visited.remove(group_name)
+            continue
+        only2.append(group_name)
+    only1 = [group_name for group_name in visited]
+    return d_sections, only1, only2
+
+
 """ EDIT FUNCTIONS """
 
 
@@ -231,8 +259,17 @@ def main_loop() -> None:
             case 'diff':
                 if len(arguments) < 2:
                     continue
-                diff = diff_results(arguments[0], arguments[1])
-                display_list(diff)
+                if len(arguments) < 4:
+                    diff = diff_results(arguments[0], arguments[1])
+                    display_list(diff)
+                    continue
+                try:
+                    display_diff_schedule(diff_schedule(
+                        get_schedule_from_results(arguments[0], int(arguments[1])),
+                        get_schedule_from_results(arguments[2], int(arguments[3]))
+                    ))
+                except:
+                    continue
             case 'cut':
                 if len(arguments) < 2:
                     continue
@@ -286,6 +323,17 @@ def display_result(res: str, index: str = "") -> bool:
     print(f"DISPLAYING RESULT - {res} - entry {index}")
     print(exporter.display_week_schedule(result[int(index)][0]))
     return True
+
+
+def display_diff_schedule(result: tuple[list[tuple[str, str, str]], list[str], list[str]]) -> None:
+    d_sections, only1, only2 = result
+    for group_name, ass1, ass2 in d_sections:
+        print(f"{group_name} : {ass1} <-> {ass2}")
+    for group_name in only1:
+        print(f"first: {group_name}")
+    for group_name in only2:
+        print(f"second: {group_name}")
+    return
 
 
 if __name__ == "__main__":
