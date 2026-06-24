@@ -6,11 +6,7 @@ from scheduler import *
 from postprocessing import *
 import exporter
 import json
-
-# AUXILIARY HELPERS
-def construct_periods(periods: list[str], frame: Timeframe) -> list[list[Block]]:
-    return [frame.gets(p) for p in periods]
-
+import pp_template
 
 """ -- SETTINGS -- """
 
@@ -18,60 +14,16 @@ def construct_periods(periods: list[str], frame: Timeframe) -> list[list[Block]]
 # GLOBAL TEMPLATE VARIABLES
 WEEK = TimeWeek()
 DAY_CODE = {'M': '0', 'T': '1', 'W': '2', 'H': '3', 'F': '4'}
-PERIOD_FOOD = construct_periods([
-    '01214', '11214', '21214', '31214', '41214',
-    '01719', '11719', '21719', '31719', '41719'
-], WEEK)
-PERIOD_AFTERNOON = construct_periods([
-    '01417', '11417', '21417', '31417', '41417'
-], WEEK)
-PERIOD_DAY = construct_periods([
-    '00922', '10922', '20922', '30922', '40922'
-], WEEK)
 
 # INPUT QUERY
 INITIAL_QUERY = "data/J26F.json"
-# INITIAL_QUERY = {
-#     'MAT237Y': ['MTH0910', 'MTH1112', 'MTH1415', 'MTH1718'],
-#     'MAT237T': ['T1011', 'T1112', 'T1213', 'T1314', 'T1415', 'T1516', 'T1617', 'T1718', 'T1819'],
-#     'MAT244H': ['W0911F1011', 'W1113F1112', 'W1315F1415', 'W1517F1516'],
-#     'MAT244T': ['M0910', 'M1011', 'M1112', 'M1213', 'M1314', 'M1415', 'M1516', 'M1617', 'M1718', 'M1819'],
-#     'STA257H': ['M1113W1112', 'M1517W1516'],
-#     'STA257T': ['W1213', 'W1617'],
-#     'CSC265H': ['MWF1516'],
-#     'CSC207H': ['W1315', 'W1517', 'H1315', 'H1820'],
-#     'CSC207T': ['H0911'],
-#     'PHY250H': ['MW0910'],
-#     'PHY250T': ['T1516', 'W1617', 'F1415', 'F1617']
-# }
 
 # POST PROCESSING
 INITIAL_POST_PROCESS_CHAIN: list[ChainEntry] = [
-    (
-        lambda s: test_breaks(s, PERIOD_FOOD, 1),
-        lambda x: 0, # (sum(x.max_break_length) / len(x.max_break_length)) * -1,
-        lambda x: all(x.has_break),
-        "filter in lunch break"
-    ),
-    (
-        lambda s: test_breaks(s, PERIOD_DAY, 1),
-        lambda x: (sum(x.max_break_length) / len(x.max_break_length)) * -1,
-        None,
-        "maximize day breaks duration"
-    ),
-    (
-        lambda s: calc_breaks(s, PERIOD_DAY),
-        lambda x: x.num_chunks,
-        None,
-        "minimize day breaks chunks"
-    ),
-    (
-        lambda s: test_intersect(s, [("CSC236G", "W1821")]),
-        lambda x: 0,
-        lambda x: not x.has_intersection,
-        "filter out evening CSC236G"
-        #lambda x: ("CSC236G" not in x.assignment) or (x.assignment["CSC236G"].name != "W1821")
-    )
+    pp_template.filter_in_lunch_break,
+    pp_template.maximize_day_breaks_duration,
+    pp_template.minimize_day_breaks_chunks,
+    pp_template.filter_out_evening_CSC236G,
 ]
 
 
@@ -351,12 +303,12 @@ def display_result(res: str, index: str = "") -> bool:
     if index == "":
         print(f"DISPLAYING RESULT - {res} - {len(result)} schedules")
         for i in range(len(result)):
-            print(f"schedule # {i + 1}")
+            print(f"schedule # {i + 1}  |  {result[i][1]}")
             print(exporter.display_week_schedule(result[i][0]))
             if input("enter 'q' to stop") == 'q':
                 break
         return True
-    print(f"DISPLAYING RESULT - {res} - entry {index}")
+    print(f"DISPLAYING RESULT - {res} - entry {index}  |  {result[int(index)][1]}")
     print(exporter.display_week_schedule(result[int(index)][0]))
     return True
 

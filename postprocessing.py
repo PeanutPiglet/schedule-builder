@@ -76,7 +76,7 @@ class TestBreaksOutputEntry(PostProcessOutputEntry):
     break_length: int
     max_break_length: list[int]
 
-def test_breaks(schedule: Schedule, periods: list[list[Block]], length: int = 1,
+def test_breaks(schedule: Schedule, periods: list[str], length: int = 1,
                 force: bool = False) -> TestBreaksOutputEntry | None:
     loaded = schedule.load()
     if not loaded:
@@ -86,7 +86,8 @@ def test_breaks(schedule: Schedule, periods: list[list[Block]], length: int = 1,
 
     has_break = []
     max_break_length = []
-    for period in periods:
+    period_blocks = [schedule.timeframe.gets(p) for p in periods]
+    for period in period_blocks:
         count = 0
         maximum = 0
         for block in period:
@@ -114,7 +115,7 @@ class CalcBreaksOutputEntry(PostProcessOutputEntry):
     num_total: int
     num_chunks: int
 
-def calc_breaks(schedule: Schedule, periods: list[list[Block]], force: bool = False) -> CalcBreaksOutputEntry | None:
+def calc_breaks(schedule: Schedule, periods: list[str], force: bool = False) -> CalcBreaksOutputEntry | None:
     loaded = schedule.load()
     if not loaded:
         print("ERROR: FAILED TO LOAD SCHEDULE", schedule)
@@ -125,7 +126,8 @@ def calc_breaks(schedule: Schedule, periods: list[list[Block]], force: bool = Fa
     previous = True
     chunk = 0
 
-    for period in periods:
+    period_blocks = [schedule.timeframe.gets(p) for p in periods]
+    for period in period_blocks:
         for block in period:
             if block.is_active:
                 previous = False
