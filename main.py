@@ -180,7 +180,7 @@ def diff_assignment(ass1: dict[str, Section], ass2: dict[str, Section]) -> tuple
     return matching, matching / union, matching / intersect
 
 
-def diff_results(res1: str, res2: str) -> list[tuple[tuple[str, str], tuple[int, float]]]:
+def diff_results_rank(res1: str, res2: str) -> list[tuple[tuple[str, str], tuple[int, float]]]:
     if res1 not in RESULTS:
         print(f"ERROR: result '{res1}' not found")
     if res2 not in RESULTS:
@@ -197,6 +197,33 @@ def diff_results(res1: str, res2: str) -> list[tuple[tuple[str, str], tuple[int,
 
     arrayed.sort(key=lambda x: x[1])
     return arrayed
+
+
+def diff_result(res1: str, res2: str) -> tuple[list[tuple[int, int]], list[int], list[int]]:
+    if res1 not in RESULTS:
+        print(f"ERROR: result '{res1}' not found")
+    if res2 not in RESULTS:
+        print(f"ERROR: result '{res2}' not found")
+    common: list[tuple[int, int]] = []
+    first: list[int] = []
+    second: list[int] = []
+    ignore_second: set[int] = set()
+    for i in range(len(RESULTS[res1])):
+        a1 = RESULTS[res1][i][0].assignment
+        is_matched = False
+        for j in range(len(RESULTS[res2])):
+            delta = diff_assignment(a1, RESULTS[res2][j][0].assignment)
+            if delta[1] == 1.0:
+                common.append((i, j))
+                ignore_second.add(j)
+                is_matched = True
+                break
+        if not is_matched:
+            first.append(i)
+    for i in range(len(RESULTS[res2])):
+        if i not in ignore_second:
+            second.append(i)
+    return common, first, second
 
 
 def diff_schedule(sch1: Schedule, sch2: Schedule) -> tuple[list[tuple[str, str, str]], list[str], list[str]]:
@@ -264,8 +291,7 @@ def main_loop() -> None:
                 if len(arguments) < 2:
                     continue
                 if len(arguments) < 4:
-                    diff = diff_results(arguments[0], arguments[1])
-                    display_list(diff)
+                    display_diff_result(diff_result(arguments[0], arguments[1]))
                     continue
                 try:
                     display_diff_schedule(diff_schedule(
@@ -274,6 +300,11 @@ def main_loop() -> None:
                     ))
                 except:
                     continue
+            case 'diff-sort':
+                if len(arguments) < 2:
+                    continue
+                diff = diff_results_rank(arguments[0], arguments[1])
+                display_list(diff)
             case 'cut':
                 if len(arguments) < 2:
                     continue
@@ -287,14 +318,15 @@ def display_list(lst: list, size: int = 5) -> None:
     n = len(lst)
     i = 0
     while i < n - size:
-        for j in range(i, i + 5):
+        for j in range(i, i + size):
             print(lst[j])
         print(f"-- {i + size} / {n} --")
         i += size
         if input() == 'q':
             return
-    for j in range(i * size, n):
+    for j in range(i, n):
         print(lst[j])
+    print(f"-- {n} / {n} --")
     return
 
 
@@ -329,8 +361,22 @@ def display_result(res: str, index: str = "") -> bool:
     return True
 
 
-def display_diff_schedule(result: tuple[list[tuple[str, str, str]], list[str], list[str]]) -> None:
-    d_sections, only1, only2 = result
+def display_diff_result(diffed: tuple[list[tuple[int, int]], list[int], list[int]]):
+    common, first, second = diffed
+    print(f"num common: {len(common)}")
+    print(f"num first only: {len(first)}")
+    print(f"num second only: {len(second)}")
+    print("common:")
+    display_list(common, 10)
+    print("first only:")
+    display_list(first, 10)
+    print("second only:")
+    display_list(second, 10)
+    return
+
+
+def display_diff_schedule(diffed: tuple[list[tuple[str, str, str]], list[str], list[str]]) -> None:
+    d_sections, only1, only2 = diffed
     for group_name, ass1, ass2 in d_sections:
         print(f"{group_name} : {ass1} <-> {ass2}")
     for group_name in only1:
