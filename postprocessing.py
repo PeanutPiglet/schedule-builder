@@ -19,7 +19,8 @@ class PostProcessOutputEntry:
 type ChainEntry = tuple[
     Callable[[Schedule], PostProcessOutputEntry],
     Callable[[PostProcessOutputEntry], Any],
-    Callable[[PostProcessOutputEntry], bool] | None
+    Callable[[PostProcessOutputEntry], bool] | None,
+    str
 ]
 
 class SortChain:
@@ -28,7 +29,7 @@ class SortChain:
     def evaluate(self, top: int = -1) -> list[tuple[Schedule, list]]:
         arrayed: list[tuple[Schedule, list]] = [(self.raw_schedules[i], []) for i in range(len(self.raw_schedules))]
         current = self.raw_schedules
-        for calc_func, selector, filtering in self.chain:
+        for calc_func, selector, filtering, _ in self.chain:
             if filtering:
                 new_current = []
                 new_arrayed = []
@@ -54,8 +55,8 @@ class SortChain:
         self.chain = chain if chain else []
     def add_schedule(self, schedule):
         self.raw_schedules.append(schedule)
-    def add_chain(self, func: Callable, selector: Callable, filtering: Callable | None = None):
-        self.chain.append((func, selector, filtering))
+    def add_chain(self, func: Callable, selector: Callable, filtering: Callable | None = None, name: str = ""):
+        self.chain.append((func, selector, filtering, name))
     def pop_schedule(self) -> Schedule | None:
         if len(self.raw_schedules) == 0:
             return None
