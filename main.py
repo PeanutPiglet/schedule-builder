@@ -62,6 +62,12 @@ def get_schedule_from_results(entry: str, index: int) -> Schedule | None:
     return RESULTS[entry][index][0]
 
 
+def get_pp_from_template(pp: str) -> ChainEntry | None:
+    if pp not in pp_template.LOOKUP:
+        return None
+    return pp_template.LOOKUP[pp]
+
+
 def construct_section(name: str, timeframe: Timeframe):
     block_buffer = []
     day_buffer = []
@@ -209,6 +215,18 @@ def cut_result(res: str, limit: int) -> bool:
     return True
 
 
+def pp_add(pp: ChainEntry, index: int) -> None:
+    POST_PROCESS_CHAIN.insert(index, pp)
+    return
+
+
+def pp_pop(index: int) -> bool:
+    if index >= len(POST_PROCESS_CHAIN):
+        return False
+    POST_PROCESS_CHAIN.pop(index)
+    return True
+
+
 """ DISPLAY """
 
 
@@ -235,6 +253,28 @@ def main_loop() -> None:
                         display_result(arguments[0], arguments[1])
             case 'query':
                 display_query()
+            case 'pp':
+                display_pp_chain()
+            case 'pp-add':
+                if len(arguments) < 1:
+                    continue
+                pp = get_pp_from_template(arguments[0])
+                if not pp:
+                    continue
+                if len(arguments) < 2:
+                    pp_add(pp, 999999)
+                    continue
+                try:
+                    pp_add(pp, int(arguments[1]))
+                except:
+                    continue
+            case 'pp-pop':
+                if len(arguments) < 1:
+                    continue
+                try:
+                    pp_pop(int(arguments[0]))
+                except:
+                    continue
             case 'load':
                 if len(arguments) < 1:
                     continue
@@ -285,6 +325,12 @@ def display_list(lst: list, size: int = 5) -> None:
 def display_query():
     for group in QUERY:
         print(f"{group} : {QUERY[group]}")
+    return
+
+
+def display_pp_chain():
+    for i in range(len(POST_PROCESS_CHAIN)):
+        print(f"{i}) {POST_PROCESS_CHAIN[i][3]}")
     return
 
 
