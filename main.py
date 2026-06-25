@@ -138,21 +138,60 @@ def diff_assignment(ass1: dict[str, Section], ass2: dict[str, Section]) -> tuple
     return matching, matching / union, matching / intersect
 
 
-def diff_results_rank(res1: str, res2: str) -> list[tuple[tuple[str, str], tuple[int, float]]]:
-    if res1 not in RESULTS:
-        print(f"ERROR: result '{res1}' not found")
-    if res2 not in RESULTS:
-        print(f"ERROR: result '{res2}' not found")
-    result1 = RESULTS[res1]
-    result2 = RESULTS[res2]
-    arrayed = []
-    for i in range(len(result1)):
-        r1 = result1[i]
-        for j in range(len(result2)):
-            r2 = result2[j]
-            diff = diff_assignment(r1[0].assignment, r2[0].assignment)
-            arrayed.append(((i, j), (diff[0] * -1, (i + j) / 2 )))
+def diff_assignments(assignments: list[dict[str, Section]]) -> int:
+    """
+    Return the number of common matching section-assignments.
+    """
+    if not assignments:
+        return 0
+    if len(assignments) == 1:
+        return len(assignments[0])
+    intersect = 0
+    first = assignments[0]
+    rests = assignments[1:]
+    for group_name in first:
+        is_common = True
+        for other in rests:
+            if group_name not in other:
+                is_common = False
+                break
+            if other[group_name].name != first[group_name].name:
+                is_common = False
+                break
+        if is_common:
+            intersect += 1
+    return intersect
 
+
+def diff_results_rank(results: list[str]) -> list[tuple[tuple, tuple[int, float]]]:
+    result_entries = []
+    for res in results:
+        if res not in RESULTS:
+            print(f"ERROR: result '{res}' not found")
+            continue
+        result_entries.append(RESULTS[res])
+    n = len(result_entries)
+    if n == 0:
+        return []
+    counter = [0] * n
+    lengths = [len(r) for r in result_entries]
+    lengths[0] += 1
+    arrayed = []
+    while counter[0] < lengths[0] - 1:
+        current = tuple(counter[i] for i in range(n))
+        assignments = [result_entries[i][counter[i]][0].assignment for i in range(n)]
+        intersect = diff_assignments(assignments)
+        arrayed.append((current, intersect * -1, sum(current) / n))
+        k = n - 1
+        while True:
+            counter[k] += 1
+            if counter[k] >= lengths[k]:
+                counter[k] = 0
+                k -= 1
+            else:
+                break
+    # diff = diff_assignment(r1[0].assignment, r2[0].assignment)
+    # arrayed.append(((i, j), (diff[0] * -1, (i + j) / 2 )))
     arrayed.sort(key=lambda x: x[1])
     return arrayed
 
@@ -270,7 +309,7 @@ def main_loop() -> None:
                     continue
             case 'pp-pop':
                 if len(arguments) < 1:
-                    continue
+                    pp_pop(-1)
                 try:
                     pp_pop(int(arguments[0]))
                 except:
@@ -293,9 +332,9 @@ def main_loop() -> None:
                 except:
                     continue
             case 'diff-sort':
-                if len(arguments) < 2:
+                if len(arguments) < 1:
                     continue
-                diff = diff_results_rank(arguments[0], arguments[1])
+                diff = diff_results_rank(arguments)
                 display_list(diff)
             case 'cut':
                 if len(arguments) < 2:
