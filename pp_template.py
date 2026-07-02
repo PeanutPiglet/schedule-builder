@@ -40,11 +40,21 @@ filter_out_evening_CSC236G = (
 )
 
 
+filter_in_asif_MAT237Y = (
+    lambda s: test_intersect(s, [("MAT237Y", "MTH0910")]).has_intersection
+              or test_intersect(s, [("MAT237Y", "MTH1112")]).has_intersection,
+    lambda x: x,
+    lambda x: x,
+    "filter in asif MAT237Y"
+)
+
+
 LOOKUP: dict[str, ChainEntry] = {
     "filter_in_lunch_break": filter_in_lunch_break,
     "maximize_day_breaks_duration": maximize_day_breaks_duration,
     "minimize_day_breaks_chunks": minimize_day_breaks_chunks,
-    "filter_out_evening_CSC236G": filter_out_evening_CSC236G
+    "filter_out_evening_CSC236G": filter_out_evening_CSC236G,
+    "filter_in_asif_MAT237Y": filter_in_asif_MAT237Y
 }
 
 

@@ -51,7 +51,7 @@ def load_from_file(filename: str) -> list | None:
 RESULTS: dict[str, list[tuple[Schedule, list]]] = {}
 QUERY = load_from_file(INITIAL_QUERY) if isinstance(INITIAL_QUERY, str) else INITIAL_QUERY.copy()
 POST_PROCESS_CHAIN = INITIAL_POST_PROCESS_CHAIN.copy()
-NUM_RES_COUNTER = 1
+NUM_RES_COUNTER = 0
 
 
 def get_schedule_from_results(entry: str, index: int) -> Schedule | None:
